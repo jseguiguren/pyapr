@@ -70,7 +70,7 @@ jobs:
             ${{ hashFiles( '${{ env.VCPKG_ROOT }}/.git/modules/vcpkg/HEAD' )}}-${{ matrix.triplet }}-invalidate
 
       - name: Show content of workspace after cache has been restored
-        run: find $RUNNER_WORKSPACE
+        run: find "$RUNNER_WORKSPACE"
         shell: bash
 
       # On Windows runners, let's ensure to have the Developer Command Prompt environment setup correctly. As used here the Developer Command Prompt created is targeting x64 and using the default the Windows SDK.
@@ -118,7 +118,7 @@ jobs:
           pytest -vv --cov-report xml --cov=pyapr
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
 
       - name: Build documentation
         run: |

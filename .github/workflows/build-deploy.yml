@@ -73,10 +73,12 @@ jobs:
           git clone --depth 1 --branch "$VCPKG_TAG" https://github.com/microsoft/vcpkg "$root"
           "$root/bootstrap-vcpkg.bat" -disableMetrics
           mkdir -p "$(cygpath -m '${{ runner.temp }}')/vcpkg-cache"
-          echo "VCPKG_ROOT=$root" >> "$GITHUB_ENV"
-          echo "VCPKG_DIR_FWD=$root" >> "$GITHUB_ENV"
-          echo "VCPKG_MANIFEST_FWD=$(cygpath -m '${{ github.workspace }}/.github/vcpkg')" >> "$GITHUB_ENV"
-          echo "VCPKG_DEFAULT_BINARY_CACHE=$(cygpath -m '${{ runner.temp }}')/vcpkg-cache" >> "$GITHUB_ENV"
+          {
+            echo "VCPKG_ROOT=$root"
+            echo "VCPKG_DIR_FWD=$root"
+            echo "VCPKG_MANIFEST_FWD=$(cygpath -m '${{ github.workspace }}/.github/vcpkg')"
+            echo "VCPKG_DEFAULT_BINARY_CACHE=$(cygpath -m '${{ runner.temp }}')/vcpkg-cache"
+          } >> "$GITHUB_ENV"
 
       - name: Restore vcpkg binary cache
         if: runner.os == 'Windows'
@@ -162,7 +164,7 @@ jobs:
 
       - name: Set version string
         shell: bash
-        run: echo "py_version_str=cp$(echo ${{ matrix.python-version }} | tr -d -c 0-9)" >> $GITHUB_ENV
+        run: echo "py_version_str=cp$(echo ${{ matrix.python-version }} | tr -d -c 0-9)" >> "$GITHUB_ENV"
 
       - name: Install package from wheel
         shell: bash
