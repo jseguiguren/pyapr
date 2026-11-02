@@ -146,6 +146,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install wheelhouse/pyapr-*${{ env.py_version_str }}-*.whl
 
+      # Imports the compiled module before anything loads Qt (pyapr loads _pyaprwrapper before
+      # pyqtgraph), from outside the checkout so the installed package is used.
+      - name: Import check
+        working-directory: ${{ runner.temp }}
+        run: |
+          python -c "import pyapr, numpy as np; a, p = pyapr.converter.get_apr((np.random.default_rng(0).poisson(100, (32, 48, 48))).astype(np.uint16), verbose=False); print(pyapr.__version__, a.total_number_particles())"
+
       - name: Run tests
         run: |
           pip install pytest pytest-qt
