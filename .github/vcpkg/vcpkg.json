@@ -1,10 +1,14 @@
 {
   "name": "pyapr-windows-ci",
   "version-string": "0",
-  "description": "LibAPR's dependencies (external/LibAPR/vcpkg.json) for the Windows wheels; versions are pinned by the vcpkg release the workflow checks out. szip has no port of its own any more: hdf5's default szip feature provides it through libaec.",
+  "description": "LibAPR's dependencies (external/LibAPR/vcpkg.json) for the Windows wheels; versions are pinned by the vcpkg release the workflow checks out. hdf5 is built without szip: LibAPR compresses with blosc and never uses szip, and the szip codec (libaec) downloads from a host that rate-limits CI runners.",
   "dependencies": [
     "blosc",
-    "hdf5",
+    {
+      "name": "hdf5",
+      "default-features": false,
+      "features": ["zlib"]
+    },
     "tiff"
   ]
 }
