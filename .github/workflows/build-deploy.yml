@@ -32,16 +32,17 @@ jobs:
             triplet: x64-linux
             builddir: wheelhouse
     env:
-      CMAKE_BUILD_DIR: ${{ github.workspace }}/builddir/
-      # vcpkg is a git submodule of LibAPR
-      VCPKG_ROOT: ${{ github.workspace }}/external/LibAPR/vcpkg
+      # Windows: a current vcpkg release, not LibAPR's 2023 submodule (its tool fetches 7-Zip from
+      # a URL that no longer answers and predates Visual Studio 2026 on the runners). The manifest
+      # in .github/vcpkg lists LibAPR's dependencies; the tag pins their versions.
+      VCPKG_TAG: "2026.10.16"
       CIBW_BUILD: "cp311-* cp312-* cp313-* cp314-*"
       CIBW_SKIP: "*musllinux*"
       CIBW_ARCHS: "auto64"
       CIBW_BUILD_VERBOSITY: 1
-      # VCPKG_DIR_FWD is set by the "vcpkg paths" step; forward slashes keep CMake from reading
+      # VCPKG_DIR_FWD and VCPKG_MANIFEST_FWD are set by the "Get vcpkg" step; forward slashes keep CMake from reading
       # the backslashes of a Windows path as escapes.
-      CIBW_ENVIRONMENT_WINDOWS: EXTRA_CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=$VCPKG_DIR_FWD/scripts/buildsystems/vcpkg.cmake -DVCPKG_MANIFEST_DIR=$LIBAPR_DIR_FWD"
+      CIBW_ENVIRONMENT_WINDOWS: EXTRA_CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=$VCPKG_DIR_FWD/scripts/buildsystems/vcpkg.cmake -DVCPKG_MANIFEST_DIR=$VCPKG_MANIFEST_FWD"
       CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "pip install -U wheel delvewheel && python fix_windows_wheel.py {wheel} {dest_dir}"
       CIBW_TEST_REQUIRES: "pytest pytest-qt pytest-xvfb"
       CIBW_TEST_COMMAND: "python3 -m pytest -vv {project}/pyapr/tests"
@@ -66,25 +67,25 @@ jobs:
         with:
           cmakeVersion: "~3.31.0"
 
-      - name: Restore vcpkg and its artifacts.
-        if: runner.os == 'Windows'
-        uses: actions/cache@v4
-        with:
-          path: |
-            ${{ env.CMAKE_BUILD_DIR }}/vcpkg_installed/
-            ${{ env.VCPKG_ROOT }}
-            !${{ env.VCPKG_ROOT }}/buildtrees
-            !${{ env.VCPKG_ROOT }}/packages
-            !${{ env.VCPKG_ROOT }}/downloads
-          key: |
-            ${{ hashFiles( 'external/LibAPR/vcpkg.json' ) }}-${{ hashFiles( '.git/modules/external/LibAPR/modules/vcpkg/HEAD' ) }}-${{ matrix.triplet }}-v2
-
-      - name: vcpkg paths
+      - name: Get vcpkg
         if: runner.os == 'Windows'
         shell: bash
         run: |
-          echo "VCPKG_DIR_FWD=$(cygpath -m '${{ env.VCPKG_ROOT }}')" >> "$GITHUB_ENV"
-          echo "LIBAPR_DIR_FWD=$(cygpath -m '${{ github.workspace }}/external/LibAPR')" >> "$GITHUB_ENV"
+          root="$(cygpath -m '${{ runner.temp }}')/vcpkg"
+          git clone --depth 1 --branch "$VCPKG_TAG" https://github.com/microsoft/vcpkg "$root"
+          "$root/bootstrap-vcpkg.bat" -disableMetrics
+          mkdir -p "$(cygpath -m '${{ runner.temp }}')/vcpkg-cache"
+          echo "VCPKG_ROOT=$root" >> "$GITHUB_ENV"
+          echo "VCPKG_DIR_FWD=$root" >> "$GITHUB_ENV"
+          echo "VCPKG_MANIFEST_FWD=$(cygpath -m '${{ github.workspace }}/.github/vcpkg')" >> "$GITHUB_ENV"
+          echo "VCPKG_DEFAULT_BINARY_CACHE=$(cygpath -m '${{ runner.temp }}')/vcpkg-cache" >> "$GITHUB_ENV"
+
+      - name: Restore vcpkg binary cache
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/vcpkg-cache
+          key: vcpkg-${{ env.VCPKG_TAG }}-${{ hashFiles('.github/vcpkg/vcpkg.json') }}-${{ matrix.triplet }}
 
       # Developer Command Prompt for x64 with the default Windows SDK
       - uses: ilammy/msvc-dev-cmd@v1

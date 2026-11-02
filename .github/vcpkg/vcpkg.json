@@ -1,0 +1,11 @@
+{
+  "name": "pyapr-windows-ci",
+  "version-string": "0",
+  "description": "LibAPR's dependencies (external/LibAPR/vcpkg.json) for the Windows wheels; versions are pinned by the vcpkg release the workflow checks out.",
+  "dependencies": [
+    "blosc",
+    "hdf5",
+    "szip",
+    "tiff"
+  ]
+}
