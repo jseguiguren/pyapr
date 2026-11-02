@@ -35,7 +35,8 @@ jobs:
       # Windows: a current vcpkg release, not LibAPR's 2023 submodule (its tool fetches 7-Zip from
       # a URL that no longer answers and predates Visual Studio 2026 on the runners). The manifest
       # in .github/vcpkg lists LibAPR's dependencies; the tag pins their versions.
-      VCPKG_TAG: "2026.10.16"
+      # 2026.01.16: the last release with hdf5 1.14 (1.14.6); later ones ship hdf5 2.x.
+      VCPKG_TAG: "2026.01.16"
       CIBW_BUILD: "cp311-* cp312-* cp313-* cp314-*"
       CIBW_SKIP: "*musllinux*"
       CIBW_ARCHS: "auto64"
