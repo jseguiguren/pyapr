@@ -48,6 +48,9 @@ class CMakeBuild(build_ext):
             "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={}".format(extdir),
             "-DPython_EXECUTABLE={}".format(sys.executable),
             "-DCMAKE_BUILD_TYPE={}".format(build_type),  # not used on MSVC, but no harm
+            # CMake 4 rejects cmake_minimum_required < 3.5, which the bundled c-blosc (2.8.12)
+            # and glm (3.2) still declare; older CMake ignores this variable.
+            "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
         ]
 
         # Pass CMake arguments via the environment variable 'EXTRA_CMAKE_ARGS'

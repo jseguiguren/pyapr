@@ -9,6 +9,13 @@ option(PYAPR_USE_OPENMP "Use OpenMP for PyAPR functionality" ON)
 option(PYAPR_USE_CUDA "Use CUDA for PyAPR functionality" OFF)
 option(PYAPR_PREFER_EXTERNAL_LIBAPR "Use installed LibAPR rather than building from submodules" OFF)
 
+# MSVC STL >= 17.10 makes std::mutex constexpr; the module then crashes with an access violation
+# when an older msvcp140.dll is already loaded in the process (e.g. the one PyQt5-Qt5 ships).
+# Microsoft's documented opt-out; set before LibAPR is added so it covers every target.
+if(MSVC)
+    add_compile_definitions(_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
+endif()
+
 ##------------- Required libraries -------------##
 find_package(HDF5 REQUIRED)
 find_package(ZLIB REQUIRED)
