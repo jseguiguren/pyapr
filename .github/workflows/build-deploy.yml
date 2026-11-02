@@ -61,11 +61,8 @@ jobs:
           git submodule update --init --recursive
           git status
 
-      # CMake 3.31, not 4: the 2023 vcpkg baseline's ports (e.g. lz4) declare
-      # cmake_minimum_required < 3.5, which CMake 4 rejects.
+      # Latest CMake: 3.31 has no generator for Visual Studio 2026 on windows-latest.
       - uses: lukka/get-cmake@latest
-        with:
-          cmakeVersion: "~3.31.0"
 
       - name: Get vcpkg
         if: runner.os == 'Windows'
