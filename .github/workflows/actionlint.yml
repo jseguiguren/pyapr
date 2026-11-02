@@ -1,0 +1,21 @@
+name: Lint workflows
+
+# actionlint (with shellcheck) on every workflow change: a mistake in a step that runs only on
+# failure, or only on one OS, otherwise shows up first when that path fires.
+on:
+  push:
+    branches: [master, develop]
+    paths: ['.github/workflows/**']
+  pull_request:
+    paths: ['.github/workflows/**']
+  workflow_dispatch:
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pinned image: a new actionlint release can add checks that redden unchanged workflows.
+      - name: actionlint
+        run: docker run --rm -v "$PWD:/repo" --workdir /repo rhysd/actionlint:1.7.12 -color
