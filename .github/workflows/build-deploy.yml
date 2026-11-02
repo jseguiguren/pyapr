@@ -60,7 +60,11 @@ jobs:
           git submodule update --init --recursive
           git status
 
+      # CMake 3.31, not 4: the 2023 vcpkg baseline's ports (e.g. lz4) declare
+      # cmake_minimum_required < 3.5, which CMake 4 rejects.
       - uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "~3.31.0"
 
       - name: Restore vcpkg and its artifacts.
         if: runner.os == 'Windows'
